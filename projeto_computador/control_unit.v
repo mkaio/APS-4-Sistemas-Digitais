@@ -140,7 +140,8 @@ module control_unit
 			  parameter XOR_AB = 8'h4A; // A <= A ^ B
 			  parameter NOTA = 8'h4B; // A <= ~A
 			  parameter NOTB = 8'h4C; // B <= ~B
-		
+			  parameter ADDAB_LDB = 8'h4D; // B <= A + B
+
 			  // Branches
 			  parameter BRA = 8'h20; // Branch Always    to (ROM) Address
 			  parameter BMI = 8'h21; // Branch if N == 1 to (ROM) Address
@@ -191,6 +192,7 @@ module control_unit
 							 else if (IR == STA_DIR) next_state = S4_STA_DIR;
 							 else if (IR == STB_DIR) next_state = S4_STB_DIR;
 							 else if (IR == ADD_AB) next_state = S4_ADD_AB;
+							 else if (IR == ADDAB_LDB) next_state = S4_ADDAB_LDB;
 							 else if (IR == SUB_AB) next_state = S4_SUB_AB;
 							 else if (IR == AND_AB) next_state = S4_AND_AB;
 							 else if (IR == OR_AB) next_state = S4_OR_AB;
@@ -202,15 +204,71 @@ module control_unit
 							 else if (IR == NOTA) next_state = S4_NOTA;
 							 else if (IR == NOTB) next_state = S4_NOTB;
 							 else if (IR == BRA) next_state = S4_BRA;
-							 else if (IR == BMI) next_state = S4_BMI;
-							 else if (IR == BPL) next_state = S4_BPL;
-							 else if (IR == BEQ) next_state = S4_BEQ;
-							 else if (IR == BNE) next_state = S4_BNE;
-							 else if (IR == BVS) next_state = S4_BVS;
-							 else if (IR == BVC) next_state = S4_BVC;
-							 else if (IR == BCS) next_state = S4_BCS;
-							 else if (IR == BCC) next_state = S4_BCC;
 							 
+							 else if (IR == BMI) 
+								begin
+									if (CCR_Result[3] == 1)
+										next_state = S4_BMI;
+									else
+										next_state = S7_BMI;
+								end
+							 
+							 else if (IR == BPL) 
+								begin
+									if (CCR_Result[3] == 0)
+										next_state = S4_BPL;
+									else
+										next_state = S7_BPL;
+								end
+
+							 
+							 else if (IR == BEQ) 
+							 	begin
+									if (CCR_Result[2] == 1)
+										next_state = S4_BEQ;
+									else
+										next_state = S7_BEQ;
+								end
+							 
+							 else if (IR == BNE) 
+							 	begin
+									if (CCR_Result[2] == 0)
+										next_state = S4_BNE;
+									else
+										next_state = S7_BNE;
+								end
+							 
+							 else if (IR == BVS) 
+							 	begin
+									if (CCR_Result[1] == 1)
+										next_state = S4_BVS;
+									else
+										next_state = S7_BVS;
+								end
+
+							 else if (IR == BVC) 
+							 	begin
+									if (CCR_Result[1] == 0)
+										next_state = S4_BVC;
+									else
+										next_state = S7_BVC;
+								end
+							 
+							 else if (IR == BCS) 
+							 	begin
+									if (CCR_Result[0] == 1)
+										next_state = S4_BCS;
+									else
+										next_state = S7_BCS;
+								end
+							 
+							 else if (IR == BCC) 
+							 	begin
+									if (CCR_Result[0] == 0)
+										next_state = S4_BCC;
+									else
+										next_state = S7_BCC;
+								end
   			 
   				S4_LDA_IMM : next_state = S5_LDA_IMM; // Execute LDA_IMM  
   				S5_LDA_IMM : next_state = S6_LDA_IMM;
@@ -350,6 +408,1060 @@ module control_unit
  							Bus1_Sel = 2'b00; // PC, A, B
   							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
  							write = 0;
+						end
+
+					S3_DECODE : 
+  						begin // Decode Opcode 
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_LDA_IMM : 
+  						begin // Load PC address into MAR
+  							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S5_LDA_IMM : 
+  						begin // Increment PC
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S6_LDA_IMM : 
+  						begin // Load data from memory into A
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 1;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_LDA_DIR : 
+  						begin // Load PC address into MAR
+  							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S5_LDA_DIR : 
+  						begin // Increment PC
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S6_LDA_DIR : 
+  						begin // Load address on MAR
+  							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S7_LDA_DIR :
+						begin // Wait
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S8_LDA_DIR :
+						begin // Load data from memory into A
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 1;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_LDB_IMM : 
+  						begin // Load PC address into MAR
+  							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S5_LDB_IMM : 
+  						begin // Increment PC
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S6_LDB_IMM : 
+  						begin // Load data from memory into B
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 1;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_LDB_DIR : 
+  						begin // Load PC address into MAR
+  							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S5_LDB_DIR : 
+  						begin // Increment PC
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S6_LDB_DIR : 
+  						begin // Load address into MAR
+  							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S7_LDB_DIR : 
+  						begin // Wait
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S8_LDB_DIR :
+						begin // Load data from memory into B
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 1;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_STA_DIR : 
+  						begin // Load PC address into MAR
+  							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S5_STA_DIR : 
+  						begin // Increment PC
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S6_STA_DIR : 
+  						begin // Load data from memory into MAR
+  							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S7_STA_DIR : 
+  						begin // Write data from A into memory
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b01; // PC, A, B
+  							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+ 							write = 1;
+						end
+
+					S4_STB_DIR : 
+  						begin // Load PC address into MAR
+  							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S5_STB_DIR : 
+  						begin // Increment PC
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S6_STB_DIR : 
+  						begin // Load data from memory into MAR
+  							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b00; // PC, A, B
+  							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S7_STB_DIR : 
+  						begin // Write data from B into memory
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 0;
+ 							Bus1_Sel = 2'b10; // PC, A, B
+  							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+ 							write = 1;
+						end
+
+					S4_ADD_AB : 
+  						begin // Redirect A to ALU
+  							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 1;
+							B_Load = 0;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 1;
+ 							Bus1_Sel = 2'b01; // PC, A, B
+  							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_SUB_AB :
+						begin 
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 1;
+							B_Load = 0;
+ 							ALU_Sel = 3'b010;
+ 							CCR_Load = 1;
+ 							Bus1_Sel = 2'b01; // PC, A, B
+  							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_AND_AB :
+						begin 
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 1;
+							B_Load = 0;
+ 							ALU_Sel = 3'b100;
+ 							CCR_Load = 1;
+ 							Bus1_Sel = 2'b01; // PC, A, B
+  							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_OR_AB :
+						begin 
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 1;
+							B_Load = 0;
+ 							ALU_Sel = 3'b101;
+ 							CCR_Load = 1;
+ 							Bus1_Sel = 2'b01; // PC, A, B
+  							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_INCA :
+						begin 
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 1;
+							B_Load = 0;
+ 							ALU_Sel = 3'b001;
+ 							CCR_Load = 1;
+ 							Bus1_Sel = 2'b01; // PC, A, B
+  							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_DECA :
+						begin 
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 1;
+							B_Load = 0;
+ 							ALU_Sel = 3'b011;
+ 							CCR_Load = 1;
+ 							Bus1_Sel = 2'b01; // PC, A, B
+  							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_XORAB :
+						begin 
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 1;
+							B_Load = 0;
+ 							ALU_Sel = 3'b110;
+ 							CCR_Load = 1;
+ 							Bus1_Sel = 2'b01; // PC, A, B
+  							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_NOTA :
+						begin 
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 1;
+							B_Load = 0;
+ 							ALU_Sel = 3'b111;
+ 							CCR_Load = 1;
+ 							Bus1_Sel = 2'b01; // PC, A, B
+  							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+					S4_ADDAB_LDB :
+						begin
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+ 							A_Load = 0;
+							B_Load = 1;
+ 							ALU_Sel = 3'b000;
+ 							CCR_Load = 1;
+ 							Bus1_Sel = 2'b01; // PC, A, B
+  							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+ 							write = 0;
+						end
+
+
+/////////////////////////////////////////////////////////////////////////////////////////////////////
+
+
+					S4_BRA :
+						begin // Load PC address into MAR
+							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S5_BRA :
+						begin // Wait
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S6_BRA :
+						begin // Load data from memory into PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 1;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S4_BMI :
+						begin // Load PC address into MAR
+							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S5_BMI :
+						begin // Wait
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S6_BMI :
+						begin // Load data from memory into PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 1;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S7_BMI :
+						begin // Increment PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S4_BPL :
+						begin // Load PC address into MAR
+							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S5_BPL :
+						begin // Wait
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S6_BPL :
+						begin // Load data from memory into PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 1;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S7_BPL :
+						begin // Increment PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S4_BEQ :
+						begin // Load PC address into MAR
+							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S5_BEQ :
+						begin // Wait
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S6_BEQ :
+						begin // Load data from memory into PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 1;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S7_BEQ :
+						begin // Increment PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S4_BNE :
+						begin // Load PC address into MAR
+							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S5_BNE :
+						begin // Wait
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+					
+					S6_BNE :
+						begin // Load data from memory into PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 1;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+					
+					S7_BNE :
+						begin // Increment PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S4_BVS :
+						begin // Load PC address into MAR
+							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S5_BVS :
+						begin // Wait
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S6_BVS :
+						begin // Load data from memory into PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 1;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S7_BVS :
+						begin // Increment PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S4_BVC :
+						begin // Load PC address into MAR
+							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S5_BVC :
+						begin // Wait
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S6_BVC :
+						begin // Load data from memory into PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 1;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S7_BVC :
+						begin // Increment PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S4_BCS :
+						begin // Load PC address into MAR
+							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S5_BCS :
+						begin // Wait
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S6_BCS :
+						begin // Load data from memory into PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 1;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S7_BCS :
+						begin // Increment PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S4_BCC :
+						begin // Load PC address into MAR
+							IR_Load = 0;
+							MAR_Load = 1;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b01; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S5_BCC :
+						begin // Wait
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S6_BCC :
+						begin // Load data from memory into PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 1;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S7_BCC :
+						begin // Increment PC
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 1;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b10; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					default : 
+						begin
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 0;
+							ALU_Sel = 3'b000;
+							CCR_Load = 0;
+							Bus1_Sel = 2'b00; // PC, A, B
+							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+							write = 0;
 						end
 
 				// Complement the output logic for the complete instruction set 
