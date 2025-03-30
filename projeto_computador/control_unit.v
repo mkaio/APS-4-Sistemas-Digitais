@@ -194,22 +194,22 @@ module control_unit
 							 else if (IR == SUB_AB) next_state = S4_SUB_AB;
 							 else if (IR == AND_AB) next_state = S4_AND_AB;
 							 else if (IR == OR_AB) next_state = S4_OR_AB;
-							 else if (IR == INCA) next_state = S4_INCA
-							 else if (IR == INCB) next_state = S4_INCB
-							 else if (IR == DECA) next_state = S4_DECA
-							 else if (IR == DECB) next_state = S4_DECB
-							 else if (IR == XOR_AB) next_state = S4_XOR_AB
-							 else if (IR == NOTA) next_state = S4_NOTA
-							 else if (IR == NOTB) next_state = S4_NOTB
-							 else if (IR = BRA) next_state = S4_BRA;
-							 else if (IR = BMI) next_state = S4_BMI
-							 else if (IR = BPL) next_state = S4_BPL
-							 else if (IR = BEQ) next_state = S4_BEQ;
-							 else if (IR = BNE) next_state = S4_BNE
-							 else if (IR = BVS) next_state = S4_BVS
-							 else if (IR = BVC) next_state = S4_BVC
-							 else if (IR = BCS) next_state = S4_BCS
-							 else if (IR = BCC) next_state = S4_BCC
+							 else if (IR == INCA) next_state = S4_INCA;
+							 else if (IR == INCB) next_state = S4_INCB;
+							 else if (IR == DECA) next_state = S4_DECA;
+							 else if (IR == DECB) next_state = S4_DECB;
+							 else if (IR == XOR_AB) next_state = S4_XORAB;
+							 else if (IR == NOTA) next_state = S4_NOTA;
+							 else if (IR == NOTB) next_state = S4_NOTB;
+							 else if (IR == BRA) next_state = S4_BRA;
+							 else if (IR == BMI) next_state = S4_BMI;
+							 else if (IR == BPL) next_state = S4_BPL;
+							 else if (IR == BEQ) next_state = S4_BEQ;
+							 else if (IR == BNE) next_state = S4_BNE;
+							 else if (IR == BVS) next_state = S4_BVS;
+							 else if (IR == BVC) next_state = S4_BVC;
+							 else if (IR == BCS) next_state = S4_BCS;
+							 else if (IR == BCC) next_state = S4_BCC;
 							 
   			 
   				S4_LDA_IMM : next_state = S5_LDA_IMM; // Execute LDA_IMM  
@@ -229,7 +229,7 @@ module control_unit
 
 				S4_LDB_IMM : next_state = S5_LDB_IMM;
 				S5_LDB_IMM : next_state = S6_LDB_IMM;
-				S6_LDB_IMM : next_state = S0_FETCH
+				S6_LDB_IMM : next_state = S0_FETCH;
 
 				S4_LDB_DIR : next_state = S5_LDB_DIR;
 				S5_LDB_DIR : next_state = S6_LDB_DIR;
@@ -250,6 +250,41 @@ module control_unit
 				S5_BEQ : next_state = S6_BEQ;
 				S6_BEQ : next_state = S0_FETCH;
 				
+				S4_BNE : next_state = S5_BNE;
+				S5_BNE : next_state = S6_BNE;
+				S6_BNE : next_state = S7_BNE;
+				S7_BNE : next_state = S0_FETCH;
+	
+				S4_BMI : next_state = S5_BMI;
+				S5_BMI : next_state = S6_BMI;
+				S6_BMI : next_state = S7_BMI;
+				S7_BMI : next_state = S0_FETCH;
+		
+				S4_BPL : next_state = S5_BPL;
+				S5_BPL : next_state = S6_BPL;
+				S6_BPL : next_state = S7_BPL;
+				S7_BPL : next_state = S0_FETCH;
+
+				S4_BVS : next_state = S5_BVS;
+				S5_BVS : next_state = S6_BVS;
+				S6_BVS : next_state = S7_BVS;
+				S7_BVS : next_state = S0_FETCH;
+							
+				S4_BVC : next_state = S5_BVC;
+				S5_BVC : next_state = S6_BVC;
+				S6_BVC : next_state = S7_BVC;
+				S7_BVC : next_state = S0_FETCH;
+
+				S4_BCS : next_state = S5_BCS;
+				S5_BCS : next_state = S6_BCS;
+				S6_BCS : next_state = S7_BCS;
+				S7_BCS : next_state = S0_FETCH;
+							
+				S4_BCC : next_state = S5_BCC;
+				S5_BCC : next_state = S6_BCC;
+				S6_BCC : next_state = S7_BCC;
+				S7_BCC : next_state = S0_FETCH;
+
 				S4_ADD_AB : next_state = S0_FETCH;
 				
 				S4_SUB_AB : next_state = S0_FETCH;
