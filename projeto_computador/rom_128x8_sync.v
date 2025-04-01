@@ -1,3 +1,5 @@
+`ifndef ROM_128X8_SYNC_V
+`define ROM_128X8_SYNC_V
 module rom_128x8_sync
 (output reg [7:0] data_out,
 	input wire [7:0] address,
@@ -71,3 +73,4 @@ module rom_128x8_sync
 	 		
 
 endmodule
+`endif

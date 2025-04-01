@@ -116,9 +116,9 @@ module control_unit
 
 			  S4_NOTA = 72, // estado para executar inversao de A
 
-			  S4_NOTB = 73; // estado para executar inversao de B
+			  S4_NOTB = 73, // estado para executar inversao de B
 
-			  // S4_ADDAB_LDB => SOMA A e B e armazena em B. *AINDA NAO IMPLEMENTADO*. esse estado especial é necessario para implementar o codigo de fibonacci, onde a soma de a e b é armazenada em B
+			  S4_ADDAB_LDB = 74; // estado para executar soma A + B e armazenar em B
 
 			  // Loads and Stores
 			  parameter LDA_IMM = 8'h86; // Load Register A (Immediate Addressing)
@@ -786,7 +786,7 @@ module control_unit
 						end
 
 					S4_ADD_AB : 
-  						begin // Redirect A to ALU
+  						begin // a <= a+b
   							IR_Load = 0;
 							MAR_Load = 0;
 							PC_Load = 0;
@@ -801,7 +801,7 @@ module control_unit
 						end
 
 					S4_SUB_AB :
-						begin 
+						begin // a <= a-b
 							IR_Load = 0;
 							MAR_Load = 0;
 							PC_Load = 0;
@@ -816,7 +816,7 @@ module control_unit
 						end
 
 					S4_AND_AB :
-						begin 
+						begin // a <= a&&b
 							IR_Load = 0;
 							MAR_Load = 0;
 							PC_Load = 0;
@@ -831,7 +831,7 @@ module control_unit
 						end
 
 					S4_OR_AB :
-						begin 
+						begin // a <= a || b
 							IR_Load = 0;
 							MAR_Load = 0;
 							PC_Load = 0;
@@ -846,7 +846,7 @@ module control_unit
 						end
 
 					S4_INCA :
-						begin 
+						begin // a <= a + 1
 							IR_Load = 0;
 							MAR_Load = 0;
 							PC_Load = 0;
@@ -861,7 +861,7 @@ module control_unit
 						end
 
 					S4_DECA :
-						begin 
+						begin // a <= a - 1
 							IR_Load = 0;
 							MAR_Load = 0;
 							PC_Load = 0;
@@ -876,7 +876,7 @@ module control_unit
 						end
 
 					S4_XORAB :
-						begin 
+						begin // a <= a ^ b
 							IR_Load = 0;
 							MAR_Load = 0;
 							PC_Load = 0;
@@ -891,7 +891,7 @@ module control_unit
 						end
 
 					S4_NOTA :
-						begin 
+						begin // a <= ~a
 							IR_Load = 0;
 							MAR_Load = 0;
 							PC_Load = 0;
@@ -906,7 +906,7 @@ module control_unit
 						end
 
 					S4_ADDAB_LDB :
-						begin
+						begin // b <= a+b (essencial para o fibonacci)
 							IR_Load = 0;
 							MAR_Load = 0;
 							PC_Load = 0;
@@ -921,8 +921,50 @@ module control_unit
 						end
 
 
-/////////////////////////////////////////////////////////////////////////////////////////////////////
+					S4_INCB :
+						begin // Redirect B to ALU
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 1;
+							ALU_Sel = 3'b001;
+							CCR_Load = 1;
+							Bus1_Sel = 2'b10; // PC, A, B
+							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+							write = 0;
+						end
 
+					S4_DECB :
+						begin // Redirect B to ALU
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 1;
+							ALU_Sel = 3'b011;
+							CCR_Load = 1;
+							Bus1_Sel = 2'b10; // PC, A, B
+							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+							write = 0;
+						end
+
+					S4_NOTB :
+						begin // Redirect B to ALU
+							IR_Load = 0;
+							MAR_Load = 0;
+							PC_Load = 0;
+							PC_Inc = 0;
+							A_Load = 0;
+							B_Load = 1;
+							ALU_Sel = 3'b111;
+							CCR_Load = 1;
+							Bus1_Sel = 2'b10; // PC, A, B
+							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
+							write = 0;
+						end
 
 					S4_BRA :
 						begin // Load PC address into MAR
@@ -1463,11 +1505,8 @@ module control_unit
 							Bus2_Sel = 2'b00; // ALU, Bus1, from_memory
 							write = 0;
 						end
-
-				// Complement the output logic for the complete instruction set 
 				
   				endcase
   			end
-  			   				
   
 endmodule

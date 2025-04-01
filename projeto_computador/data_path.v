@@ -101,5 +101,7 @@ module data_path
 				CCR_Result <= NZVC;
 	end
 
+	// necessario criar um testbench baseado em $monitor
+
 
 endmodule
