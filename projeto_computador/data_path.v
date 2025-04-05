@@ -45,12 +45,18 @@ module data_path
   
 	always @ (posedge Clk or negedge Reset)
 	begin: INSTRUCTION_REGISTER
-		if (!Reset)
+		if (!Reset) begin
 			IR <= 8'h00;
-		else
-			if (IR_Load)
+			IR_out <= 8'hxx; // limpa também a saída
+		end else begin
+			if (IR_Load) begin
 				IR <= Bus2;
+				IR_out <= Bus2;
+			end
+		end
 	end
+
+
 
 	always @ (posedge Clk or negedge Reset)
 	begin: MEMORY_ADDRESS_REGISTER
@@ -90,7 +96,7 @@ module data_path
 				B <= Bus2;
 	end
 
-	ALUb alu(.A(A), .B(B), .ALU_Sel(ALU_Sel), .NZVC(NZVC), .Result(ALU_Result));  // talvez a alu esteja implementada
+	ALUb alu(.A(A), .B(B), .ALU_Sel(ALU_Sel), .NZVC(NZVC), .Result(ALU_Result));  
 
 	always @ (posedge Clk or negedge Reset) // talvez esteja sem receber informação das flags nzvc do ALU
 	begin: CONDITION_CODE_REGISTER
@@ -101,15 +107,7 @@ module data_path
 				CCR_Result <= NZVC;
 	end
 
-	
+	// necessario criar um testbench baseado em $monitor
 
 
-
-
-
-
-
-
-
-  
 endmodule

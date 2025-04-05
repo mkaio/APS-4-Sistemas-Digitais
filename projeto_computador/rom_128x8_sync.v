@@ -1,3 +1,5 @@
+`ifndef ROM_128X8_SYNC_V
+`define ROM_128X8_SYNC_V
 module rom_128x8_sync
 (output reg [7:0] data_out,
 	input wire [7:0] address,
@@ -29,7 +31,8 @@ module rom_128x8_sync
 		parameter XOR_AB = 8'h4A; // A <= A ^ B
 		parameter NOTA = 8'h4B; // A <= ~A
 		parameter NOTB = 8'h4C; // B <= ~B
-		
+		parameter ADDAB_LDB = 8'h4D; // B <= A + B
+
 		// Branches
 		parameter BRA = 8'h20; // Branch Always    to (ROM) Address
 		parameter BMI = 8'h21; // Branch if N == 1 to (ROM) Address
@@ -44,17 +47,19 @@ module rom_128x8_sync
 		
 		
 		initial 
-		begin: PROGRAM_CODE
+		begin: PROGRAM_CODE // fibonacci
 			ROM[0] = LDA_IMM;  
 			ROM[1] = 8'h00;
 			ROM[2] = LDB_IMM;
 			ROM[3] = 8'h01;
 			ROM[4] = ADD_AB;
-			// Após isso, guardar resultado da soma em A. embutido na instrução
-			ROM[5] = ADD_AB;
-			// Após isso, guardar resultado da soma em B. é necessario criar uma nova instrução que faça isso!
-			ROM[6] = BVC;
-			ROM[7] = 8'h04;
+			ROM[5] = STA_DIR;
+			ROM[6] = 8'hE0;
+			ROM[7] = ADDAB_LDB;
+			ROM[8] = STB_DIR;
+			ROM[9] = 8'hE1;
+			ROM[10] = BVC;
+			ROM[11] = 8'h04;
 		end
 
 		
@@ -70,4 +75,6 @@ module rom_128x8_sync
 		if (EN)
 			data_out = ROM[address];
 	 		
+
 endmodule
+`endif
