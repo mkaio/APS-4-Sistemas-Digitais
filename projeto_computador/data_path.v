@@ -90,7 +90,7 @@ module data_path
 				B <= Bus2;
 	end
 
-	ALUb alu(.A(A), .B(B), .ALU_Sel(ALU_Sel), .NZVC(NZVC), .Result(ALU_Result));  
+	ALUb alu(.A(A), .B(B), .ALU_Sel(ALU_Sel), .NZVC(NZVC), .Result(ALU_Result));  // talvez a alu esteja implementada
 
 	always @ (posedge Clk or negedge Reset) // talvez esteja sem receber informação das flags nzvc do ALU
 	begin: CONDITION_CODE_REGISTER
@@ -101,7 +101,15 @@ module data_path
 				CCR_Result <= NZVC;
 	end
 
-	// necessario criar um testbench baseado em $monitor
+	
 
 
+
+
+
+
+
+
+
+  
 endmodule
